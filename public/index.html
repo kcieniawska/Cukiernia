@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cukiernia Manager 🍰</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #ff4d94;
+            --secondary: #ffccd5;
+            --bg: #fff5f7;
+            --text: #2d3436;
+            --success: #2ecc71;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top right, #fff0f3, #ffe5ec);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-card {
+            width: 100%;
+            max-width: 450px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 20px 40px rgba(255, 77, 148, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        h1 {
+            font-weight: 800;
+            font-size: 28px;
+            margin-bottom: 24px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid #eee;
+            border-radius: 14px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(255, 77, 148, 0.1);
+        }
+
+        button.add-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button.add-btn:hover { transform: scale(1.05); }
+
+        ul { list-style: none; padding: 0; }
+
+        li {
+            background: white;
+            margin-bottom: 12px;
+            padding: 16px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            transition: all 0.3s ease;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .task-info { display: flex; align-items: center; gap: 12px; flex: 1; }
+
+        .check-btn {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            border: 2px solid var(--secondary);
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: all 0.2s;
+            padding: 0;
+            flex-shrink: 0;
+        }
+
+        .check-btn.done {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .task-name {
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            cursor: text;
+            outline: none;
+            border: 1px solid transparent;
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .task-name.completed {
+            text-decoration: line-through;
+            color: #a0a0a0;
+        }
+
+        .task-name:not(.completed):hover {
+            background: #fff0f3;
+        }
+
+        .delete-btn {
+            background: #fff0f3;
+            color: #ff4d4d;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+
+        .delete-btn:hover { background: #ff4d4d; color: white; }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-card">
+    <h1><i data-lucide="cake-slice"></i> Cukiernia</h1>
+    
+    <div class="input-group">
+        <input 
+            type="text" 
+            id="taskName" 
+            placeholder="Co dziś pieczemy?"
+            onkeydown="if(event.key === 'Enter') addTask()"
+            autocomplete="off"
+        >
+        <button class="add-btn" onclick="addTask()">
+            <i data-lucide="plus"></i>
+        </button>
+    </div>
+
+    <ul id="taskList"></ul>
+    <div id="empty" class="empty-state" style="display: none;">
+        <p>Wszystkie wypieki gotowe! 🥐</p>
+    </div>
+</div>
+
+<script>
+    async function loadTasks() {
+        try {
+            const res = await fetch('/tasks');
+            const tasks = await res.json();
+            const list = document.getElementById('taskList');
+            const empty = document.getElementById('empty');
+
+            empty.style.display = tasks.length === 0 ? 'block' : 'none';
+            
+            list.innerHTML = tasks.map(t => `
+                <li style="${t.completed ? 'opacity: 0.7; background: #fafafa;' : ''}">
+                    <div class="task-info">
+                        <button class="check-btn ${t.completed ? 'done' : ''}" onclick="toggleTask('${t.id}')">
+                            ${t.completed ? '<i data-lucide="check" size="16"></i>' : ''}
+                        </button>
+                        <span 
+                            class="task-name ${t.completed ? 'completed' : ''}" 
+                            contenteditable="${!t.completed}" 
+                            onblur="updateTask('${t.id}', this.innerText)"
+                            onkeydown="if(event.key === 'Enter'){ event.preventDefault(); this.blur(); }"
+                        >${t.name}</span>
+                    </div>
+                    <button class="delete-btn" onclick="deleteTask('${t.id}')">
+                        <i data-lucide="trash-2" size="18"></i>
+                    </button>
+                </li>
+            `).join('');
+            lucide.createIcons();
+        } catch (err) {
+            console.error("Błąd ładowania:", err);
+        }
+    }
+
+    async function addTask() {
+        const input = document.getElementById('taskName');
+        const name = input.value.trim();
+        if (!name) return;
+
+        const res = await fetch('/tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name })
+        });
+
+        if (res.ok) {
+            input.value = '';
+            input.focus(); // Kursor wraca do pola, by pisać dalej
+            loadTasks();
+        } else {
+            const err = await res.json();
+            alert(err.message || "Błąd walidacji!");
+        }
+    }
+
+    async function toggleTask(id) {
+        await fetch(`/tasks/${id}/toggle`, { method: 'PATCH' });
+        loadTasks();
+    }
+
+    async function updateTask(id, newName) {
+        const name = newName.trim();
+        if (!name) {
+            loadTasks();
+            return;
+        }
+
+        const res = await fetch(`/tasks/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name })
+        });
+
+        if (!res.ok) {
+            loadTasks();
+        }
+    }
+
+    async function deleteTask(id) {
+        await fetch(`/tasks/${id}`, { method: 'DELETE' });
+        loadTasks();
+    }
+
+    // Pierwsze załadowanie
+    loadTasks();
+</script>
+
+</body>
+</html>
