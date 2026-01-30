@@ -1,0 +1,16 @@
+meta {
+  name: Czy gotowe
+  type: http
+  seq: 4
+}
+
+patch {
+  url: http://localhost:8000/tasks/6b00b607-ddc9-42e0-9258-991065f8dd11/toggle
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

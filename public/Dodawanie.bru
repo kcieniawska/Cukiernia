@@ -1,0 +1,22 @@
+meta {
+  name: Dodawanie
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8000/tasks
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Pączek luksusowy"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

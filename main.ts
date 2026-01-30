@@ -103,6 +103,7 @@ app.use(async (ctx, next) => {
   }
 });
 
+
 // Ładny komunikat przy uruchamianiu serwera :)
 console.log("🍰 System cukierni działa na: http://localhost:8000");
 await app.listen({ port: 8000 });
